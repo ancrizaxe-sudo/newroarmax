@@ -88,6 +88,31 @@ function RealTimeDashboard() {
     }
   };
 
+  const downloadQRForBatch = async (batchId) => {
+    try {
+      const response = await fetch('/api/blockchain/qr/download-for-step', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ batchId, stepType: 'current' })
+      });
+      
+      if (response.ok) {
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${batchId}-qr.png`;
+        a.click();
+        window.URL.revokeObjectURL(url);
+      } else {
+        alert('Failed to download QR code');
+      }
+    } catch (error) {
+      console.error('Error downloading QR:', error);
+      alert('Error downloading QR code');
+    }
+  };
+
   const getStepName = (step) => {
     const stepNames = {
       'collection': 'Collection',
@@ -210,6 +235,13 @@ function RealTimeDashboard() {
                       >
                         <Eye size={16} />
                         View Details
+                      </button>
+                      <button 
+                        onClick={() => downloadQRForBatch(batch.batchId)}
+                        className="download-button"
+                      >
+                        <Download size={16} />
+                        Download QR
                       </button>
                     </div>
                   </div>
@@ -566,16 +598,15 @@ function RealTimeDashboard() {
         .batch-actions {
           display: flex;
           justify-content: center;
+          gap: 8px;
         }
 
-        .view-button {
+        .view-button,
+        .download-button {
           display: flex;
           align-items: center;
           gap: 6px;
           padding: 8px 16px;
-          background: rgba(59, 130, 246, 0.2);
-          color: #1e40af;
-          border: 1px solid rgba(59, 130, 246, 0.3);
           border-radius: 10px;
           cursor: pointer;
           font-weight: 600;
@@ -584,12 +615,29 @@ function RealTimeDashboard() {
           backdrop-filter: blur(10px);
         }
 
+        .view-button {
+          background: rgba(59, 130, 246, 0.2);
+          color: #1e40af;
+          border: 1px solid rgba(59, 130, 246, 0.3);
+        }
+
         .view-button:hover {
           background: rgba(59, 130, 246, 0.3);
           transform: translateY(-2px);
           box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
         }
 
+        .download-button {
+          background: rgba(34, 197, 94, 0.2);
+          color: #166534;
+          border: 1px solid rgba(34, 197, 94, 0.3);
+        }
+
+        .download-button:hover {
+          background: rgba(34, 197, 94, 0.3);
+          transform: translateY(-2px);
+          box-shadow: 0 4px 15px rgba(34, 197, 94, 0.3);
+        }
         .transaction-item {
           background: rgba(255, 255, 255, 0.7);
           backdrop-filter: blur(10px);

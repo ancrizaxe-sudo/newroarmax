@@ -4,16 +4,17 @@ import QRCode from 'qrcode';
 
 const router = express.Router();
 
-// Store real blockchain transactions with proper structure
+// Store REAL blockchain transactions with actual Fabric data
 let realTransactions = new Map();
 let batchStates = new Map();
 
 // Initialize Fabric connection on startup
 let fabricConnected = false;
+let networkAvailable = false;
 
 async function initializeFabric() {
   try {
-    const networkAvailable = await fabricConnection.isNetworkAvailable();
+    networkAvailable = await fabricConnection.isNetworkAvailable();
     if (networkAvailable) {
       fabricConnected = await fabricConnection.connect();
       console.log('🔗 Fabric network connection:', fabricConnected ? 'SUCCESS' : 'FAILED');
@@ -27,113 +28,24 @@ async function initializeFabric() {
 
 // Initialize some demo batches in different states
 function initializeDemoBatches() {
-  // Batch 1: Only collection completed
-  const batch1 = {
-    batchId: 'HERB001',
-    collection: {
-      species: 'Ashwagandha',
-      weight: 2500,
-      latitude: 26.9124,
-      longitude: 75.7873,
-      timestamp: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
-      collectorId: 'FARMER_001'
-    },
-    completedSteps: ['collection']
-  };
-  
-  // Batch 2: Collection + Quality completed
-  const batch2 = {
-    batchId: 'HERB002',
-    collection: {
-      species: 'Turmeric',
-      weight: 3000,
-      latitude: 23.0225,
-      longitude: 72.5714,
-      timestamp: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
-      collectorId: 'FARMER_002'
-    },
-    quality: {
-      moisture: 8.5,
-      pesticides: 0.005,
-      heavyMetals: 2.1,
-      passed: true,
-      testDate: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000).toISOString(),
-      labTechId: 'LAB_001'
-    },
-    completedSteps: ['collection', 'quality']
-  };
-  
-  // Batch 3: Collection + Quality + Processing completed
-  const batch3 = {
-    batchId: 'HERB003',
-    collection: {
-      species: 'Neem',
-      weight: 2800,
-      latitude: 19.0760,
-      longitude: 72.8777,
-      timestamp: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
-      collectorId: 'FARMER_003'
-    },
-    quality: {
-      moisture: 9.2,
-      pesticides: 0.003,
-      heavyMetals: 1.8,
-      passed: true,
-      testDate: new Date(Date.now() - 6 * 24 * 60 * 60 * 1000).toISOString(),
-      labTechId: 'LAB_002'
-    },
-    processing: {
-      method: 'Drying',
-      temperature: 60,
-      duration: 24,
-      yield: 2200,
-      processDate: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000).toISOString(),
-      processorId: 'PROC_001'
-    },
-    completedSteps: ['collection', 'quality', 'processing']
-  };
-  
-  // Batch 4: Complete journey
-  const batch4 = {
-    batchId: 'HERB004',
-    collection: {
-      species: 'Brahmi',
-      weight: 2000,
-      latitude: 12.9716,
-      longitude: 77.5946,
-      timestamp: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString(),
-      collectorId: 'FARMER_004'
-    },
-    quality: {
-      moisture: 7.8,
-      pesticides: 0.002,
-      heavyMetals: 1.5,
-      passed: true,
-      testDate: new Date(Date.now() - 9 * 24 * 60 * 60 * 1000).toISOString(),
-      labTechId: 'LAB_003'
-    },
-    processing: {
-      method: 'Extraction',
-      temperature: 55,
-      duration: 18,
-      yield: 1800,
-      processDate: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
-      processorId: 'PROC_002'
-    },
-    manufacturing: {
-      productName: 'Premium Brahmi Capsules',
-      batchSize: 500,
-      expiryDate: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(),
-      manufacturingDate: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
-      manufacturerId: 'MFG_001'
-    },
-    completedSteps: ['collection', 'quality', 'processing', 'manufacturing']
-  };
-  
-  batchStates.set('HERB001', batch1);
-  batchStates.set('HERB002', batch2);
-  batchStates.set('HERB003', batch3);
-  batchStates.set('HERB004', batch4);
+  // Only initialize if no real transactions exist
+  if (realTransactions.size === 0) {
+    // Batch 1: Only collection completed
+    const batch1 = {
+      batchId: 'HERB001',
+      collection: {
+        species: 'Ashwagandha',
+        weight: 2500,
+        latitude: 26.9124,
+        longitude: 75.7873,
+        timestamp: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+        collectorId: 'FARMER_001'
+      },
+      completedSteps: ['collection']
+    };
+    
+    batchStates.set('HERB001', batch1);
+  }
 }
 
 // Initialize on module load
@@ -184,10 +96,14 @@ router.get('/active-batches', (req, res) => {
   res.json(activeBatches);
 });
 
-// Download QR for next step
+// Download QR for next step - FIXED
 router.post('/qr/download-for-step', async (req, res) => {
   try {
     const { batchId, stepType } = req.body;
+    
+    if (!batchId) {
+      return res.status(400).json({ error: 'Batch ID is required' });
+    }
     
     const qrContent = batchId;
     
@@ -215,56 +131,96 @@ router.post('/qr/download-for-step', async (req, res) => {
   }
 });
 
-// Submit transaction to blockchain
+// Submit transaction to blockchain - REAL FABRIC INTEGRATION
 router.post('/invoke', async (req, res) => {
   try {
     const { function: functionName, args, batchId } = req.body;
     
-    console.log(`📤 Blockchain invoke: ${functionName}`, args);
+    console.log(`📤 REAL Blockchain invoke: ${functionName}`, args);
     
     // Generate or use provided batch ID
     const finalBatchId = batchId || `HERB${Date.now().toString().slice(-6)}`;
     
     let result;
     if (fabricConnected) {
+      // REAL FABRIC TRANSACTION - NO MOCKS
       result = await fabricConnection.submitTransaction(functionName, ...args);
+      console.log(`🔗 REAL Transaction ID: ${result.transactionId}`);
+      console.log(`📦 REAL Block Number: ${result.blockNumber}`);
     } else {
-      result = await fabricConnection.mockSubmitTransaction(functionName, ...args);
+      // Fallback only if Fabric is not available
+      console.log('⚠️ Fabric not available, cannot process real transaction');
+      return res.status(503).json({
+        success: false,
+        error: 'Hyperledger Fabric network not available. Please start the network first.',
+        fabricConnected: false
+      });
     }
     
     // Update batch state based on function
     updateBatchState(finalBatchId, functionName, args[0] ? JSON.parse(args[0]) : {});
     
-    // Store in real transactions
+    // Store REAL transaction data
     realTransactions.set(result.transactionId, {
-      id: result.transactionId,
+      id: result.transactionId, // REAL Fabric transaction ID
       function: functionName,
       batchId: finalBatchId,
       args: args,
       timestamp: result.timestamp,
-      blockNumber: result.blockNumber,
-      status: 'success'
+      blockNumber: result.blockNumber, // REAL block number
+      status: 'success',
+      mock: false // This is REAL data
     });
     
     res.json({
       success: true,
       batchId: finalBatchId,
-      transactionId: result.transactionId,
-      blockNumber: result.blockNumber,
+      transactionId: result.transactionId, // REAL Fabric TxID
+      blockNumber: result.blockNumber, // REAL block number
       timestamp: result.timestamp,
       qrData: {
         qrCodeUrl: `data:image/png;base64,${await generateQRBase64(finalBatchId)}`,
         batchId: finalBatchId
       },
-      qrType: getQRType(functionName)
+      qrType: getQRType(functionName),
+      mock: false // This is REAL data
     });
     
   } catch (error) {
-    console.error('❌ Blockchain invoke error:', error);
+    console.error('❌ REAL Blockchain invoke error:', error);
     res.status(500).json({ 
       success: false, 
       error: error.message,
-      mock: true
+      fabricConnected: fabricConnected
+    });
+  }
+});
+
+// Get raw transaction data from Fabric ledger
+router.get('/raw-transaction/:txId', async (req, res) => {
+  try {
+    const { txId } = req.params;
+    
+    if (!fabricConnected) {
+      return res.status(503).json({
+        success: false,
+        error: 'Hyperledger Fabric network not available'
+      });
+    }
+    
+    const rawData = await fabricConnection.getRawTransactionData(txId);
+    
+    res.json({
+      success: true,
+      data: rawData,
+      timestamp: new Date().toISOString()
+    });
+    
+  } catch (error) {
+    console.error('Error fetching raw transaction:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
     });
   }
 });
@@ -370,18 +326,24 @@ async function generateQRBase64(batchId) {
   }
 }
 
-// Query blockchain
+// Query blockchain - REAL FABRIC QUERIES
 router.post('/query', async (req, res) => {
   try {
     const { function: functionName, args } = req.body;
     
-    console.log(`📋 Blockchain query: ${functionName}`, args);
+    console.log(`📋 REAL Blockchain query: ${functionName}`, args);
     
     let result;
     if (fabricConnected) {
+      // REAL FABRIC QUERY - NO MOCKS
       result = await fabricConnection.evaluateTransaction(functionName, ...args);
+      console.log(`✅ REAL query successful`);
     } else {
-      result = await fabricConnection.mockEvaluateTransaction(functionName, ...args);
+      return res.status(503).json({
+        success: false,
+        error: 'Hyperledger Fabric network not available. Please start the network first.',
+        fabricConnected: false
+      });
     }
     
     const data = JSON.parse(result.result);
@@ -390,47 +352,49 @@ router.post('/query', async (req, res) => {
       success: true,
       data: data,
       timestamp: result.timestamp,
-      mock: result.mock || false
+      mock: false // This is REAL data
     });
     
   } catch (error) {
-    console.error('❌ Blockchain query error:', error);
+    console.error('❌ REAL Blockchain query error:', error);
     res.status(500).json({ 
       success: false, 
       error: error.message,
-      mock: true
+      fabricConnected: fabricConnected
     });
   }
 });
 
-// Get specific batch record from blockchain
+// Get specific batch record from blockchain - REAL FABRIC DATA
 router.get('/batch/:batchId', async (req, res) => {
   try {
     const { batchId } = req.params;
     
-    console.log(`📋 Querying batch record: ${batchId}`);
+    console.log(`📋 Querying REAL batch record: ${batchId}`);
     
     let result;
     if (fabricConnected) {
+      // REAL FABRIC QUERY
       result = await fabricConnection.evaluateTransaction('GetProvenance', batchId);
     } else {
-      result = await fabricConnection.mockEvaluateTransaction('GetProvenance', batchId);
+      return res.status(503).json({
+        success: false,
+        error: 'Hyperledger Fabric network not available. Please start the network first.',
+        fabricConnected: false
+      });
     }
     
     const batchData = JSON.parse(result.result);
     
-    // Add blockchain metadata
+    // Add REAL blockchain metadata
     const blockchainRecord = {
       ...batchData,
       blockchain: {
-        transactionId: `tx_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-        blockHash: `block_${Math.random().toString(36).substr(2, 16)}`,
-        blockNumber: Math.floor(Math.random() * 1000) + 1000,
-        timestamp: result.timestamp,
         network: 'herbionyx-network',
         channel: 'ayurveda-channel',
         chaincode: 'herbtraceability',
-        mock: result.mock || false
+        timestamp: result.timestamp,
+        mock: false // This is REAL data
       }
     };
     
@@ -438,21 +402,20 @@ router.get('/batch/:batchId', async (req, res) => {
       success: true,
       data: blockchainRecord,
       timestamp: result.timestamp,
-      transactionId: blockchainRecord.blockchain.transactionId,
-      blockHash: blockchainRecord.blockchain.blockHash,
-      blockNumber: blockchainRecord.blockchain.blockNumber
+      mock: false // This is REAL data
     });
     
   } catch (error) {
-    console.error('❌ Batch query error:', error);
+    console.error('❌ REAL Batch query error:', error);
     res.status(500).json({ 
       success: false, 
-      error: error.message 
+      error: error.message,
+      fabricConnected: fabricConnected
     });
   }
 });
 
-// Get transaction history
+// Get transaction history - REAL TRANSACTIONS ONLY
 router.get('/transactions', (req, res) => {
   const { limit = 20 } = req.query;
   
@@ -475,25 +438,27 @@ router.post('/clear-transactions', (req, res) => {
   });
 });
 
-// Network health check
+// Network health check - REAL STATUS
 router.get('/health', async (req, res) => {
   try {
     const networkAvailable = await fabricConnection.isNetworkAvailable();
     
     res.json({
-      status: networkAvailable ? 'connected' : 'mock',
+      status: fabricConnected ? 'connected' : 'disconnected',
       fabricConnected: fabricConnected,
       networkAvailable: networkAvailable,
       totalTransactions: realTransactions.size,
       activeBatches: batchStates.size,
       lastTransaction: Array.from(realTransactions.values())[0]?.timestamp || null,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
+      mock: false // This is REAL status
     });
   } catch (error) {
     res.status(500).json({
       status: 'error',
       error: error.message,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
+      mock: false
     });
   }
 });

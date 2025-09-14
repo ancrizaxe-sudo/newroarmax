@@ -153,6 +153,29 @@ npm run server
 
 For testing SMS functionality, you can simulate SMS messages:
 
+**SMS Number for Testing:** +91-9876-543-210 (Demo Number)
+
+**How to Send SMS as a Collector:**
+1. Send SMS to: +91-9876-543-210
+2. Format: `COL [SPECIES_CODE] [WEIGHT]kg`
+3. Example: `COL ASH 25kg` (for 25kg Ashwagandha)
+
+**Species Codes for SMS:**
+- `ASH` = Ashwagandha
+- `TUR` = Turmeric  
+- `NEE` = Neem
+- `TUL` = Tulsi
+- `BRA` = Brahmi
+- `GIL` = Giloy
+- `AML` = Amla
+- `ARJ` = Arjuna
+
+**SMS Response Example:**
+```
+HERBIONYX: Collection recorded! Species: Ashwagandha, Weight: 25kg. QR ID: QR_123456. Thank you!
+```
+
+**Alternative - API Simulation:**
 ```bash
 # Send test SMS via API
 curl -X POST http://localhost:5000/api/sms/simulate \

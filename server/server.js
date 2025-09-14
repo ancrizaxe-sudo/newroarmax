@@ -622,47 +622,8 @@ app.get('*', (req, res) => {
   if (fs.existsSync(indexPath)) {
     res.sendFile(indexPath);
   } else {
-    res.send(`
-      <!DOCTYPE html>
-      <html lang="en">
-        <head>
-          <meta charset="UTF-8" />
-          <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-          <title>HERBIONYX - Loading...</title>
-          <style>
-            body { 
-              font-family: Arial, sans-serif; 
-              display: flex; 
-              justify-content: center; 
-              align-items: center; 
-              height: 100vh; 
-              margin: 0; 
-              background: linear-gradient(135deg, #2d5016, #4a7c59);
-              color: white;
-            }
-            .loading { text-align: center; }
-            .spinner { 
-              border: 4px solid rgba(255,255,255,0.3); 
-              border-top: 4px solid white; 
-              border-radius: 50%; 
-              width: 40px; 
-              height: 40px; 
-              animation: spin 1s linear infinite; 
-              margin: 0 auto 20px;
-            }
-            @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-          </style>
-        </head>
-        <body>
-          <div class="loading">
-            <div class="spinner"></div>
-            <h2>HERBIONYX</h2>
-            <p>Building application...</p>
-            <p>Please run: npm run build</p>
-          </div>
-        </body>
-      </html>
-    `);
+    // Redirect to Vite dev server if dist doesn't exist
+    res.redirect('http://localhost:5173');
   }
 });
 

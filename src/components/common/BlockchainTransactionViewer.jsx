@@ -38,10 +38,10 @@ function BlockchainTransactionViewer({ batchId, onClose }) {
 
   const downloadQRForNextStep = async (stepType) => {
     try {
-      const response = await fetch(`/api/qr/download-for-step`, {
+      const response = await fetch(`/api/blockchain/qr/download-for-step`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ batchId, stepType })
+        body: JSON.stringify({ batchId: batchId, stepType })
       });
       
       if (response.ok) {
@@ -52,9 +52,13 @@ function BlockchainTransactionViewer({ batchId, onClose }) {
         a.download = `${batchId}-${stepType}-qr.png`;
         a.click();
         window.URL.revokeObjectURL(url);
+      } else {
+        console.error('QR download failed:', response.status);
+        alert('Failed to download QR code');
       }
     } catch (error) {
       console.error('Error downloading QR:', error);
+      alert('Error downloading QR code');
     }
   };
 
@@ -175,7 +179,7 @@ function BlockchainTransactionViewer({ batchId, onClose }) {
               {nextStep === 'quality' && (
                 <div className="step-actions">
                   <button 
-                    onClick={() => downloadQRForNextStep('quality')}
+                    onClick={() => downloadQRForNextStep(batchId, 'quality')}
                     className="action-button download"
                   >
                     <Download size={16} />
@@ -230,7 +234,7 @@ function BlockchainTransactionViewer({ batchId, onClose }) {
               {nextStep === 'processing' && transactionData.quality.passed && (
                 <div className="step-actions">
                   <button 
-                    onClick={() => downloadQRForNextStep('processing')}
+                    onClick={() => downloadQRForNextStep(batchId, 'processing')}
                     className="action-button download"
                   >
                     <Download size={16} />
@@ -283,7 +287,7 @@ function BlockchainTransactionViewer({ batchId, onClose }) {
               {nextStep === 'manufacturing' && (
                 <div className="step-actions">
                   <button 
-                    onClick={() => downloadQRForNextStep('manufacturing')}
+                    onClick={() => downloadQRForNextStep(batchId, 'manufacturing')}
                     className="action-button download"
                   >
                     <Download size={16} />

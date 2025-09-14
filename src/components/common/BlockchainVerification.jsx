@@ -38,31 +38,59 @@ function BlockchainVerification({ batchId, onVerificationComplete }) {
         if (result.success && result.data) {
           console.log('Blockchain verification successful:', result.data);
           setBlockchainData(result.data);
-          setRawTransactionData({
-            transactionId: result.transactionId || `tx_${Date.now()}`,
-            blockHash: result.blockHash || `block_${Math.random().toString(36).substr(2, 16)}`,
-            blockNumber: result.blockNumber || Math.floor(Math.random() * 1000) + 1000,
-            timestamp: result.timestamp,
-            chaincode: 'herbtraceability',
-            channel: 'ayurveda-channel',
-            network: 'herbionyx-network'
-          });
+              channel: 'ayurveda-channel',
+              network: 'herbionyx-network',
+              mock: false
+            });
+          }
           
           if (onVerificationComplete) {
             onVerificationComplete(result.data);
           }
+        if (errorData.error && errorData.error.includes('network not available')) {
+          setError('Hyperledger Fabric network not available. Please start the blockchain network first.');
         } else {
+          setError(errorData.error || 'Blockchain query failed');
+        }
           setError('Invalid QR: No record found on blockchain');
         }
       } else {
         const errorData = await response.json();
-        setError(errorData.error || 'Blockchain query failed');
+        if (errorData.error && errorData.error.includes('network not available')) {
+          setError('Hyperledger Fabric network not available. Please start the blockchain network first.');
+        } else {
+          setError(errorData.error || 'Blockchain query failed');
+        }
       }
     } catch (error) {
       console.error('Blockchain verification error:', error);
-      setError('Network error: Unable to connect to blockchain');
+      setError('Network error: Unable to connect to Hyperledger Fabric blockchain');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchRawTransactionFromFabric = async () => {
+    if (!blockchainData || !blockchainData.blockchain) {
+      alert('No blockchain data available to fetch raw transaction');
+      return;
+    }
+    
+    try {
+      const response = await fetch(`/api/blockchain/raw-transaction/${blockchainData.blockchain.transactionId}`);
+      
+      if (response.ok) {
+        const result = await response.json();
+        setRawTransactionData(result.data);
+        setShowRawTransaction(true);
+        alert('Raw transaction data fetched from Hyperledger Fabric ledger');
+      } else {
+        const errorData = await response.json();
+        alert(`Failed to fetch raw transaction: ${errorData.error}`);
+      }
+    } catch (error) {
+      console.error('Error fetching raw transaction:', error);
+      alert('Error fetching raw transaction from Fabric');
     }
   };
 
@@ -223,10 +251,23 @@ function BlockchainVerification({ batchId, onVerificationComplete }) {
             {showRawTransaction ? <EyeOff size={16} /> : <Eye size={16} />}
             {showRawTransaction ? 'Hide' : 'Show'} Raw Blockchain Transaction
           </button>
+          
+          <button 
+            onClick={() => fetchRawTransactionFromFabric()}
+            className="fetch-raw-btn"
+          >
+            <Database size={16} />
+            Query Raw Transaction from Fabric
+          </button>
 
           {showRawTransaction && rawTransactionData && (
             <div className="raw-transaction-display">
               <h4>🔗 Raw Blockchain Transaction Data</h4>
+              {rawTransactionData.mock === false && (
+                <div className="real-data-badge">
+                  ✅ REAL HYPERLEDGER FABRIC DATA
+                </div>
+              )}
               <div className="raw-data">
                 <div className="raw-item">
                   <Hash className="raw-icon" />
@@ -459,6 +500,7 @@ function BlockchainVerification({ batchId, onVerificationComplete }) {
           font-weight: 600;
           transition: all 0.3s ease;
           margin-bottom: 16px;
+          margin-right: 10px;
         }
 
         .toggle-raw-btn:hover {
@@ -466,6 +508,38 @@ function BlockchainVerification({ batchId, onVerificationComplete }) {
           transform: translateY(-2px);
         }
 
+        .fetch-raw-btn {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          padding: 10px 16px;
+          background: #10b981;
+          color: white;
+          border: none;
+          border-radius: 8px;
+          cursor: pointer;
+          font-weight: 600;
+          transition: all 0.3s ease;
+          margin-bottom: 16px;
+        }
+
+        .fetch-raw-btn:hover {
+          background: #059669;
+          transform: translateY(-2px);
+        }
+
+        .real-data-badge {
+          background: linear-gradient(135deg, #10b981, #059669);
+          color: white;
+          padding: 8px 16px;
+          border-radius: 20px;
+          font-weight: 600;
+          font-size: 12px;
+          text-align: center;
+          margin-bottom: 16px;
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+        }
         .raw-transaction-display {
           background: #1f2937;
           border-radius: 12px;
