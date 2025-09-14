@@ -1,1 +1,12 @@
-{"code":"rate-limited","message":"You have hit the rate limit. Please upgrade to keep chatting.","providerLimitHit":false,"isRetryable":true}
+import React from 'react';
+
+const BlockchainVerification = () => {
+  return (
+    <div className="blockchain-verification">
+      <h3>Blockchain Verification</h3>
+      <p>Verification component placeholder</p>
+    </div>
+  );
+};
+
+export default BlockchainVerification;
