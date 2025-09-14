@@ -92,13 +92,6 @@ let users = [
 ];
 
 let pendingUsers = [];
-let batches = [];
-let transactions = [];
-let smsTransactions = [];
-let collections = [];
-let qualityTests = [];
-let processings = [];
-let finalBatches = [];
 
 // Real services
 const realServices = {
@@ -597,92 +590,7 @@ function getRandomLocation() {
 }
 
 // Role-specific data endpoints
-app.get('/api/collector/batches', (req, res) => {
-  const mockBatches = [
-    {
-      id: 'batch_001',
-      eventId: 'EVT_001',
-      species: 'Ashwagandha',
-      weight: 25.5,
-      timestamp: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
-      latitude: 26.9124,
-      longitude: 75.7873,
-      status: 'COLLECTED'
-    },
-    {
-      id: 'batch_002',
-      eventId: 'EVT_002',
-      species: 'Turmeric',
-      weight: 30.0,
-      timestamp: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
-      latitude: 26.9200,
-      longitude: 75.7900,
-      status: 'QUALITY_PASSED'
-    }
-  ];
-  
-  res.json(mockBatches);
-});
-
-app.get('/api/lab/pending-batches', (req, res) => {
-  const mockPendingBatches = [
-    {
-      id: 'batch_003',
-      eventId: 'EVT_003',
-      species: 'Brahmi',
-      weight: 15.8,
-      timestamp: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
-      status: 'COLLECTED'
-    }
-  ];
-  
-  res.json(mockPendingBatches);
-});
-
-app.get('/api/processor/approved-batches', (req, res) => {
-  const mockApprovedBatches = [
-    {
-      id: 'batch_004',
-      testId: 'TEST_004',
-      species: 'Neem',
-      weight: 22.3,
-      timestamp: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
-      status: 'QUALITY_PASSED'
-    }
-  ];
-  
-  res.json(mockApprovedBatches);
-});
-
-app.get('/api/manufacturer/processed-batches', (req, res) => {
-  const mockProcessedBatches = [
-    {
-      id: 'batch_005',
-      processId: 'PROC_005',
-      species: 'Giloy',
-      yield: 18.7,
-      processType: 'Extraction',
-      processDate: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
-      status: 'PROCESSED'
-    }
-  ];
-  
-  res.json(mockProcessedBatches);
-});
-
-app.get('/api/dashboard/stats', (req, res) => {
-  const { role } = req.query;
-  
-  const stats = {
-    Collector: { totalBatches: 12, pendingActions: 3, completedTransactions: 45, smsCollections: 8 },
-    LabTech: { totalBatches: 8, pendingActions: 2, completedTransactions: 32 },
-    Processor: { totalBatches: 6, pendingActions: 1, completedTransactions: 28 },
-    Manufacturer: { totalBatches: 4, pendingActions: 1, completedTransactions: 20 },
-    Admin: { totalBatches: 30, pendingActions: 7, completedTransactions: 125, totalSmsTransactions: 25 }
-  };
-  
-  res.json(stats[role] || { totalBatches: 0, pendingActions: 0, completedTransactions: 0, networkHealth: 100, smsCollections: 0 });
-});
+// Remove all mock data endpoints - using real blockchain data only
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
@@ -693,8 +601,7 @@ app.get('/api/health', (req, res) => {
       database: 'connected',
       blockchain: 'connected',
       ipfs: 'connected',
-      sms: 'connected',
-      geolocation: 'connected'
+      sms: 'connected'
     }
   });
 });
