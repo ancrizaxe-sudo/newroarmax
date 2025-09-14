@@ -90,10 +90,10 @@ function RealTimeDashboard() {
 
   const downloadQRForBatch = async (batchId) => {
     try {
-      const response = await fetch('/api/blockchain/qr/download-for-step', {
+      const response = await fetch(`/api/blockchain/qr/download-for-step`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ batchId, stepType: 'current' })
+        body: JSON.stringify({ batchId: batchId, stepType: 'current' })
       });
       
       if (response.ok) {
@@ -102,9 +102,14 @@ function RealTimeDashboard() {
         const a = document.createElement('a');
         a.href = url;
         a.download = `${batchId}-qr.png`;
+        document.body.appendChild(a);
         a.click();
+        document.body.removeChild(a);
         window.URL.revokeObjectURL(url);
       } else {
+        console.error('QR download failed with status:', response.status);
+        const errorText = await response.text();
+        console.error('Error response:', errorText);
         alert('Failed to download QR code');
       }
     } catch (error) {

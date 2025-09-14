@@ -636,6 +636,7 @@ app.use((error, req, res, next) => {
 app.listen(PORT, () => {
   console.log(`🌿 HERBIONYX Server running on port ${PORT}`);
   console.log(`🌐 Access application at http://localhost:${PORT}`);
+  console.log(`🌐 Frontend dev server: http://localhost:5173`);
   console.log(`🔗 All services integrated and ready`);
   console.log(`📦 IPFS integration: Ready`);
   console.log(`📱 SMS support: Enabled`);

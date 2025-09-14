@@ -101,6 +101,8 @@ router.post('/qr/download-for-step', async (req, res) => {
   try {
     const { batchId, stepType } = req.body;
     
+    console.log('QR download request:', { batchId, stepType });
+    
     if (!batchId) {
       return res.status(400).json({ error: 'Batch ID is required' });
     }
@@ -119,11 +121,19 @@ router.post('/qr/download-for-step', async (req, res) => {
       width: 256
     };
     
-    const qrBuffer = await QRCode.toBuffer(qrContent, qrOptions);
-    
-    res.setHeader('Content-Type', 'image/png');
-    res.setHeader('Content-Disposition', `attachment; filename="${batchId}-${stepType}-qr.png"`);
-    res.send(qrBuffer);
+    try {
+      const qrBuffer = await QRCode.toBuffer(qrContent, qrOptions);
+      
+      res.setHeader('Content-Type', 'image/png');
+      res.setHeader('Content-Disposition', `attachment; filename="${batchId}-${stepType || 'qr'}.png"`);
+      res.setHeader('Content-Length', qrBuffer.length);
+      res.send(qrBuffer);
+      
+      console.log('QR download successful for batch:', batchId);
+    } catch (qrError) {
+      console.error('QR generation error:', qrError);
+      return res.status(500).json({ error: 'Failed to generate QR code' });
+    }
     
   } catch (error) {
     console.error('QR download error:', error);
