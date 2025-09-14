@@ -1,0 +1,48 @@
+# Crypto configuration for HERBIONYX network
+OrdererOrgs:
+  - Name: Orderer
+    Domain: herbionyx.com
+    EnableNodeOUs: false
+    Specs:
+      - Hostname: orderer
+
+PeerOrgs:
+  - Name: FarmersCoop
+    Domain: farmers.herbionyx.com
+    EnableNodeOUs: false
+    Template:
+      Count: 1
+    Users:
+      Count: 1
+
+  - Name: LabsOrg
+    Domain: labs.herbionyx.com
+    EnableNodeOUs: false
+    Template:
+      Count: 1
+    Users:
+      Count: 1
+
+  - Name: ProcessorsOrg
+    Domain: processors.herbionyx.com
+    EnableNodeOUs: false
+    Template:
+      Count: 1
+    Users:
+      Count: 1
+
+  - Name: ManufacturersOrg
+    Domain: manufacturers.herbionyx.com
+    EnableNodeOUs: false
+    Template:
+      Count: 1
+    Users:
+      Count: 1
+
+  - Name: NMPBOrg
+    Domain: nmpb.herbionyx.com
+    EnableNodeOUs: false
+    Template:
+      Count: 1
+    Users:
+      Count: 1
